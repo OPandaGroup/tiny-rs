@@ -1,0 +1,10 @@
+[package]
+name = "tiny-png"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tinify-rs = { version = "1.4.1", features = ["async"] }
+iced = "0.12.1"
+rfd = "0.14.1"
+anyhow = "1.0.86"
