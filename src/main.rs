@@ -66,8 +66,9 @@ impl Application for App {
                         self.api_key_val = api_key;
                     }
                     AddSth::Path => {
-                        let paths =
-                            image_files(FileDialog::new().pick_folder().unwrap_or_default());
+                        let paths = image_files(
+                            FileDialog::new().pick_folder().unwrap(), //todo: handle Err Better?
+                        );
                         let iter1 = paths.into_iter();
                         let iter2 = self.path.clone().into_iter();
                         self.path = iter1.chain(iter2).collect();
@@ -78,7 +79,7 @@ impl Application for App {
 
             Message::Convert => {
                 let path = self.path.clone();
-                let tinify: Tinify = Tinify::new().set_key(&self.api_key_val);
+                let tinify = Tinify::new().set_key(&self.api_key_val);
 
                 Command::perform(
                     async move {
@@ -160,8 +161,9 @@ async fn process_image(tinify: Tinify, path: Vec<String>) -> anyhow::Result<()> 
     Ok(())
 }
 
-fn image_files(path: PathBuf) -> anyhow::Result<Vec<PathBuf>> {
-    let iter1 = fs::read_dir(&path)?
+fn image_files(path: PathBuf) -> Vec<PathBuf> {
+    let iter1 = fs::read_dir(&path)
+        .unwrap()
         .map(|entry| entry.unwrap().path())
         .filter(|item| {
             item.is_file()
@@ -170,11 +172,12 @@ fn image_files(path: PathBuf) -> anyhow::Result<Vec<PathBuf>> {
                     || item.to_str().unwrap().to_lowercase().ends_with(".webp"))
         });
 
-    let iter2 = fs::read_dir(path)?
+    let iter2 = fs::read_dir(path)
+        .unwrap()
         .map(|entry| entry.unwrap().path())
         .filter(|item| item.is_dir())
-        .flat_map(|item| image_files(item).unwrap().into_iter());
-    Ok(iter1.chain(iter2).collect())
+        .flat_map(|item| image_files(item).into_iter());
+    iter1.chain(iter2).collect()
 }
 
 fn main() {
