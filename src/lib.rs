@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
-use iced::{executor, theme, Application, Color, Command, Theme};
+use iced::{executor, theme, Application, Command, Theme};
 use images_path::collect_images_path;
 use message::{AddSth, ButtonStyle, LogText};
 use process::process_images;
@@ -110,14 +110,14 @@ impl Application for App {
                 Command::none()
             }
             Message::LogText(log_text) => {
-                self.log_text = log_text.into();
+                self.log_text = log_text;
                 Command::none()
             }
         }
     }
 
     fn title(&self) -> String {
-        "tiny-rs".to_string()
+        "TinyRS".to_string()
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
@@ -129,8 +129,11 @@ impl Application for App {
         )
         .padding(60)
         .center_x();
-        let log_text =
-            Text::new((&self.log_text).into()).style(theme::Text::Color((&self.log_text).into()));
+        let log_text: &str = (&self.log_text).into();
+        let log_text = Text::new(log_text)
+            .style(theme::Text::Color((&self.log_text).into()))
+            .size(25);
+
         let basic = container(
             row!(
                 Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
