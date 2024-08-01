@@ -1,3 +1,5 @@
+use iced::Color;
+
 pub mod button_style_toggle;
 #[derive(Debug, Clone)]
 pub enum AddSth {
@@ -15,9 +17,9 @@ pub enum Message {
     AddSth(AddSth),
     ClearPath,
     Convert,
-    WarnText(String),
     ToggleButtonStyle,
     ToggleTheme,
+    LogText(LogText),
 }
 
 #[derive(Debug, Clone)]
@@ -31,4 +33,32 @@ pub enum ThemeTo {
     Dark,
     Moonfly,
     Oxocarbon,
+}
+const SUCCESS: &str = "Convert Success";
+const FAIL: &str = "Incorrect APIkey";
+
+#[derive(Debug, Clone)]
+
+pub enum LogText {
+    Fail,
+    Success,
+    Null,
+}
+impl From<&LogText> for &str {
+    fn from(logtext: &LogText) -> Self {
+        match logtext {
+            LogText::Success => SUCCESS,
+            LogText::Fail => FAIL,
+            LogText::Null => "",
+        }
+    }
+}
+impl From<&LogText> for Color {
+    fn from(logtext: &LogText) -> Self {
+        match logtext {
+            LogText::Success => Color::from_rgb8(0, 220, 0),
+            LogText::Fail => Color::from_rgb8(220, 0, 0),
+            LogText::Null => Color::default(),
+        }
+    }
 }

@@ -4,7 +4,7 @@ use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
 use iced::{executor, theme, Application, Color, Command, Theme};
 use images_path::collect_images_path;
-use message::{AddSth, ButtonStyle};
+use message::{AddSth, ButtonStyle, LogText};
 use process::process_images;
 use rfd::FileDialog;
 use tinify::async_bin::Tinify;
@@ -17,13 +17,13 @@ use iced::Alignment;
 pub struct App {
     paths: Vec<PathBuf>,
     api_key: String,
-    warn_text: String,
+    log_text: LogText,
     theme: iced::Theme,
     button_style: ButtonStyle,
 }
 impl App {
     fn clear_images_path(&mut self) {
-        self.paths = Vec::new()
+        self.paths.clear()
     }
     fn rfd_again(&mut self) {
         let paths = collect_images_path(FileDialog::new().pick_folder().unwrap_or_default());
@@ -40,7 +40,7 @@ impl Application for App {
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let paths = Vec::new();
         let api_key = "".to_string();
-        let warn_text = "".to_string();
+        let log_text = LogText::Null;
         let theme = iced::Theme::Moonfly;
         let button_style = ButtonStyle::Standard;
         (
@@ -49,7 +49,7 @@ impl Application for App {
                 theme,
                 paths,
                 api_key,
-                warn_text,
+                log_text,
             },
             iced::Command::none(),
         )
@@ -57,6 +57,7 @@ impl Application for App {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             Message::AddSth(addsth) => {
+                self.log_text = LogText::Null;
                 match addsth {
                     AddSth::APi(api_key) => {
                         self.api_key = api_key;
@@ -67,7 +68,6 @@ impl Application for App {
             }
 
             Message::Convert => {
-                self.warn_text = String::new();
                 let path = self.paths.clone();
                 let tinify = Tinify::new().set_key(&self.api_key);
 
@@ -81,18 +81,14 @@ impl Application for App {
                         )
                         .await
                     },
-                    |result| match result.is_err() {
-                        true => Message::WarnText("Incorrect API KEY".to_string()),
-                        false => Message::WarnText("".to_string()),
+                    |result| match result.is_ok() {
+                        true => Message::LogText(LogText::Success),
+                        false => Message::LogText(LogText::Fail),
                     },
                 )
             }
             Message::ClearPath => {
                 self.clear_images_path();
-                Command::none()
-            }
-            Message::WarnText(warn) => {
-                self.warn_text = warn;
                 Command::none()
             }
 
@@ -113,6 +109,10 @@ impl Application for App {
                 };
                 Command::none()
             }
+            Message::LogText(log_text) => {
+                self.log_text = log_text.into();
+                Command::none()
+            }
         }
     }
 
@@ -122,16 +122,15 @@ impl Application for App {
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
         let api_input = container(
-            TextInput::new("API Key", &self.api_key)
+            TextInput::new("Type APIKey Here", &self.api_key)
                 .on_input(|s: String| Message::AddSth(AddSth::APi(s)))
                 .on_paste(|s: String| Message::AddSth(AddSth::APi(s)))
                 .padding(25),
         )
         .padding(60)
         .center_x();
-        let warn_text = Text::new(self.warn_text.clone())
-            .size(35)
-            .style(theme::Text::Color(Color::from_rgb8(220, 0, 0)));
+        let log_text =
+            Text::new((&self.log_text).into()).style(theme::Text::Color((&self.log_text).into()));
         let basic = container(
             row!(
                 Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
@@ -144,7 +143,7 @@ impl Application for App {
                     .on_press(Message::Convert)
                     .style(theme::Button::custom(self.button_style.clone())),
             )
-            .spacing(10),
+            .spacing(8),
         )
         .padding(40)
         .center_x()
@@ -168,7 +167,7 @@ impl Application for App {
         )
         .padding(40);
 
-        column!(api_input, warn_text, basic, settings)
+        column!(api_input, log_text, basic, settings)
             .spacing(10)
             .align_items(Alignment::Center)
             .into()
