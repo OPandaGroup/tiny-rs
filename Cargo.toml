@@ -1,6 +1,7 @@
 [package]
 name = "tiny-rs"
 version = "0.1.0"
+authors = ["Yiming Lu <demolemon@ouytlook.at>"]
 edition = "2021"
 [dependencies]
 tinify-rs = { version = "1.4.1", features = ["async"] }
