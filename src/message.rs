@@ -1,4 +1,4 @@
-mod button_style_toggle;
+pub mod button_style_toggle;
 #[derive(Debug, Clone)]
 pub enum AddSth {
     APi(String),

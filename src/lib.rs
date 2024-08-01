@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 
-use iced::alignment::{Horizontal, Vertical};
 use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
-use iced::{executor, theme, Application, Command, Theme};
+use iced::{executor, theme, Application, Color, Command, Theme};
 use images_path::collect_images_path;
 use message::{AddSth, ButtonStyle};
 use process::process_images;
@@ -17,7 +16,7 @@ pub mod message;
 use iced::Alignment;
 pub struct App {
     paths: Vec<PathBuf>,
-    api_key_val: String,
+    api_key: String,
     warn_text: String,
     theme: iced::Theme,
     button_style: ButtonStyle,
@@ -40,7 +39,7 @@ impl Application for App {
     type Theme = iced::Theme;
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let paths = Vec::new();
-        let api_key_val = "".to_string();
+        let api_key = "".to_string();
         let warn_text = "".to_string();
         let theme = iced::Theme::Moonfly;
         let button_style = ButtonStyle::Standard;
@@ -49,7 +48,7 @@ impl Application for App {
                 button_style,
                 theme,
                 paths,
-                api_key_val,
+                api_key,
                 warn_text,
             },
             iced::Command::none(),
@@ -60,7 +59,7 @@ impl Application for App {
             Message::AddSth(addsth) => {
                 match addsth {
                     AddSth::APi(api_key) => {
-                        self.api_key_val = api_key;
+                        self.api_key = api_key;
                     }
                     AddSth::Path => self.rfd_again(),
                 }
@@ -68,8 +67,9 @@ impl Application for App {
             }
 
             Message::Convert => {
+                self.warn_text = String::new();
                 let path = self.paths.clone();
-                let tinify = Tinify::new().set_key(&self.api_key_val);
+                let tinify = Tinify::new().set_key(&self.api_key);
 
                 Command::perform(
                     async move {
@@ -81,12 +81,9 @@ impl Application for App {
                         )
                         .await
                     },
-                    |result| {
-                        if result.is_err() {
-                            Message::WarnText("Incorrect API KEY".to_string())
-                        } else {
-                            Message::WarnText("".to_string())
-                        }
+                    |result| match result.is_err() {
+                        true => Message::WarnText("Incorrect API KEY".to_string()),
+                        false => Message::WarnText("".to_string()),
                     },
                 )
             }
@@ -125,13 +122,16 @@ impl Application for App {
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
         let api_input = container(
-            TextInput::new("API Key", &self.api_key_val)
+            TextInput::new("API Key", &self.api_key)
                 .on_input(|s: String| Message::AddSth(AddSth::APi(s)))
                 .on_paste(|s: String| Message::AddSth(AddSth::APi(s)))
                 .padding(25),
         )
         .padding(60)
         .center_x();
+        let warn_text = Text::new(self.warn_text.clone())
+            .size(35)
+            .style(theme::Text::Color(Color::from_rgb8(220, 0, 0)));
         let basic = container(
             row!(
                 Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
@@ -168,7 +168,8 @@ impl Application for App {
         )
         .padding(40);
 
-        column!(api_input, basic, settings)
+        column!(api_input, warn_text, basic, settings)
+            .spacing(10)
             .align_items(Alignment::Center)
             .into()
     }
