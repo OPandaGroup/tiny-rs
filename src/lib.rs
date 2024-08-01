@@ -75,8 +75,8 @@ impl Application for App {
                         .await
                     },
                     |result| {
-                        if let Err(e) = result {
-                            Message::WarnText(e.to_string())
+                        if result.is_err() {
+                            Message::WarnText("Incorrect API KEY".to_string())
                         } else {
                             Message::WarnText("".to_string())
                         }
