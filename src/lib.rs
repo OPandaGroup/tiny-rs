@@ -7,8 +7,6 @@ use message::AddSth;
 use process::process_images;
 use rfd::FileDialog;
 use tinify::async_bin::Tinify;
-// static mut
-// use tinify::error::TinifyError;
 pub mod process;
 use self::message::Message;
 pub mod images_path;
@@ -76,7 +74,7 @@ impl Application for App {
                     },
                     |result| {
                         if let Err(e) = result {
-                            Message::WarnText(e.to_string())
+                            Message::WarnText(String::from("Incorrect API Key"))
                         } else {
                             Message::WarnText("".to_string())
                         }
