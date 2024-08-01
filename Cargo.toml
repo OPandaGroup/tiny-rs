@@ -2,9 +2,11 @@
 name = "tiny-rs"
 version = "0.1.0"
 edition = "2021"
-
 [dependencies]
 tinify-rs = { version = "1.4.1", features = ["async"] }
 iced = { version = "0.12.1", features = ["tokio"] }
 rfd = "0.14.1"
 anyhow = "1.0.86"
+[profile.release]
+opt-level = "s"
+strip = true
