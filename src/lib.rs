@@ -1,116 +1,83 @@
-use std::path::PathBuf;
-
 use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
-use iced::{executor, theme, Application, Command, Theme};
-use images_path::collect_images_path;
-use message::{AddSth, ButtonStyle, LogText};
-use process::process_images;
-use rfd::FileDialog;
+use iced::{executor, theme, Alignment, Application, Command};
+use message::Thing;
+// use process::process_images;
+use state::app_theme::AppTheme;
+use state::button_style_state::ButtonStyle;
+use state::log_text_state::LogText;
+use state::process_images;
 use tinify::async_bin::Tinify;
-
-pub mod process;
+mod state;
 use self::message::Message;
 pub mod images_path;
 pub mod message;
-use iced::Alignment;
+// use iced::Alignment;
+//App里只放std的和自己的数据类型，不放第三方crate的数据类型
 pub struct App {
-    paths: Vec<PathBuf>,
-    api_key: String,
-    log_text: LogText,
-    theme: iced::Theme,
-    button_style: ButtonStyle,
+    config: state::Config,
+    cache: state::Cache,
 }
-impl App {
-    fn clear_images_path(&mut self) {
-        self.paths.clear()
-    }
-    fn rfd_again(&mut self) {
-        let paths = collect_images_path(FileDialog::new().pick_folder().unwrap_or_default());
-        let iter1 = paths.into_iter();
-        let iter2 = self.paths.clone().into_iter();
-        self.paths = iter1.chain(iter2).collect();
-    }
-}
+
 impl Application for App {
     type Executor = executor::Default;
-    type Flags = ();
+    type Flags = (state::Config, state::Cache);
     type Message = Message;
     type Theme = iced::Theme;
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        let paths = Vec::new();
-        let api_key = "".to_string();
-        let log_text = LogText::Null;
-        let theme = iced::Theme::Moonfly;
-        let button_style = ButtonStyle::Standard;
-        (
-            Self {
-                button_style,
-                theme,
-                paths,
-                api_key,
-                log_text,
-            },
-            iced::Command::none(),
-        )
+
+    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+        let (config, cache) = flags;
+        (Self { config, cache }, iced::Command::none())
     }
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
-            Message::AddSth(addsth) => {
-                self.log_text = LogText::Null;
-                match addsth {
-                    AddSth::APi(api_key) => {
-                        self.api_key = api_key;
+            Message::Add(thing) => {
+                self.cache.log_text = LogText::Null;
+                match thing {
+                    Thing::APi(api_key) => {
+                        self.cache.api_key = api_key;
                     }
-                    AddSth::Path => self.rfd_again(),
+                    Thing::Path => self.cache.rfd_again(),
                 }
                 Command::none()
             }
 
             Message::Convert => {
-                let path = self.paths.clone();
-                let tinify = Tinify::new().set_key(&self.api_key);
+                self.cache.log_text = LogText::Null;
+                let mut paths = self.cache.paths.clone();
+                let tinify = Tinify::new().set_key(&self.cache.api_key);
 
                 Command::perform(
-                    async move {
-                        process_images(
-                            tinify,
-                            path.iter()
-                                .map(|p| (*p.to_string_lossy()).to_owned())
-                                .collect(),
-                        )
-                        .await
-                    },
+                    async move { process_images(&mut paths, tinify).await },
                     |result| match result.is_ok() {
-                        true => Message::LogText(LogText::Success),
-                        false => Message::LogText(LogText::Fail),
+                        true => Message::Display(LogText::Success),
+                        false => Message::Display(LogText::Fail),
                     },
                 )
             }
             Message::ClearPath => {
-                self.clear_images_path();
+                self.cache.clear_paths();
                 Command::none()
             }
 
             Message::ToggleTheme => {
-                match self.theme.clone() {
-                    Theme::Light => self.theme = Theme::Dark,
-                    Theme::Dark => self.theme = Theme::Moonfly,
-                    Theme::Moonfly => self.theme = Theme::Oxocarbon,
-                    Theme::Oxocarbon => self.theme = Theme::Light,
-                    _ => self.theme = Theme::default(),
+                match self.config.theme {
+                    AppTheme::Light => self.config.theme = AppTheme::Dark,
+                    AppTheme::Dark => self.config.theme = AppTheme::Moonfly,
+                    AppTheme::Moonfly => self.config.theme = AppTheme::Oxocarbon,
+                    AppTheme::Oxocarbon => self.config.theme = AppTheme::Light,
                 }
                 Command::none()
             }
             Message::ToggleButtonStyle => {
-                match self.button_style {
-                    ButtonStyle::Standard => self.button_style = ButtonStyle::Lovely,
-                    ButtonStyle::Lovely => self.button_style = ButtonStyle::Standard,
+                match self.config.button_style {
+                    ButtonStyle::Standard => self.config.button_style = ButtonStyle::Lovely,
+                    ButtonStyle::Lovely => self.config.button_style = ButtonStyle::Standard,
                 };
                 Command::none()
             }
-            Message::LogText(log_text) => {
-                self.log_text = log_text;
+            Message::Display(log_text) => {
+                self.cache.log_text = log_text;
                 Command::none()
             }
         }
@@ -122,29 +89,35 @@ impl Application for App {
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
         let api_input = container(
-            TextInput::new("Type APIKey Here", &self.api_key)
-                .on_input(|s: String| Message::AddSth(AddSth::APi(s)))
-                .on_paste(|s: String| Message::AddSth(AddSth::APi(s)))
+            TextInput::new("Type APIKey Here", &self.cache.api_key)
+                .on_input(|s: String| Message::Add(Thing::APi(s)))
                 .padding(25),
         )
         .padding(60)
         .center_x();
-        let log_text: &str = (&self.log_text).into();
+
+        let log_text: &str = (&self.cache.log_text).into();
         let log_text = Text::new(log_text)
-            .style(theme::Text::Color((&self.log_text).into()))
+            .style(theme::Text::Color((&self.cache.log_text).into()))
             .size(25);
+        let added_p = self.cache.rfd_opened_path.to_display();
+        println!("{}", added_p);
+        let added_path = row!(
+            Text::new("AddedPath: ").size(22),
+            Text::new(added_p).size(20)
+        );
 
         let basic = container(
             row!(
                 Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
-                    .on_press(Message::AddSth(AddSth::Path))
-                    .style(theme::Button::custom(self.button_style.clone())),
+                    .on_press(Message::Add(Thing::Path))
+                    .style(theme::Button::custom(self.config.button_style.clone())),
                 Button::new(Text::new("ClearPath").shaping(Shaping::Advanced).size(20))
                     .on_press(Message::ClearPath)
-                    .style(theme::Button::custom(self.button_style.clone())),
+                    .style(theme::Button::custom(self.config.button_style.clone())),
                 Button::new(Text::new("Process").shaping(Shaping::Advanced).size(20))
                     .on_press(Message::Convert)
-                    .style(theme::Button::custom(self.button_style.clone())),
+                    .style(theme::Button::custom(self.config.button_style.clone())),
             )
             .spacing(8),
         )
@@ -156,26 +129,26 @@ impl Application for App {
             column!(
                 Button::new(Text::new("ToggleTheme").shaping(Shaping::Advanced).size(20))
                     .on_press(Message::ToggleTheme)
-                    .style(theme::Button::custom(self.button_style.clone())),
+                    .style(theme::Button::custom(self.config.button_style.clone())),
                 Button::new(
                     Text::new("ToggleButtonStyle")
                         .shaping(Shaping::Advanced)
                         .size(20)
                 )
                 .on_press(Message::ToggleButtonStyle)
-                .style(theme::Button::custom(self.button_style.clone())),
+                .style(theme::Button::custom(self.config.button_style.clone())),
             )
             .align_items(Alignment::Center)
             .spacing(10),
         )
         .padding(40);
 
-        column!(api_input, log_text, basic, settings)
-            .spacing(10)
+        column!(api_input, log_text, added_path, basic, settings)
+            .spacing(9)
             .align_items(Alignment::Center)
             .into()
     }
     fn theme(&self) -> Self::Theme {
-        self.theme.clone()
+        self.config.theme.clone().into()
     }
 }

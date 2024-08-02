@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 use iced::{Application, Settings};
 use tiny_rs::App;
 fn main() {
