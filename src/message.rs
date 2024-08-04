@@ -17,7 +17,6 @@ pub enum Message {
     Add(Thing),
     ClearPath,
     Convert,
-    ToggleButtonStyle,
     ToggleTheme,
     Display(LogText),
 }

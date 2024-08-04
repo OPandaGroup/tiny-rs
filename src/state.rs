@@ -15,20 +15,19 @@ pub struct Config {
     pub theme: AppTheme,
     pub button_style: ButtonStyle,
 }
+
 impl Default for Config {
     fn default() -> Self {
-        let theme = AppTheme::Dark;
-        let button_style = ButtonStyle::Standard;
         Self {
-            theme,
-            button_style,
+            theme: AppTheme::Dark,
+            button_style: ButtonStyle::default(),
         }
     }
 }
 
 pub struct Cache {
-    pub rfd_opened_path: Paths,
-    pub paths: Paths,
+    pub rfd_opened_path: Paths, // 每次rfd打开的单个路径的总和
+    pub paths: Paths,           // 总的paths
     pub api_key: String,
     pub log_text: LogText,
 }
@@ -57,7 +56,8 @@ impl Cache {
         let paths = collect_images_path(&rfd_opened_path);
         let iter1 = self.paths.clone().0.into_iter();
         let iter2 = paths.into_iter();
-        self.paths.0 = iter1.chain(iter2).collect()
+        self.rfd_opened_path.0.push(rfd_opened_path);
+        self.paths.0 = iter1.chain(iter2).collect();
     }
 }
 
@@ -67,10 +67,10 @@ pub struct Paths(pub Vec<PathBuf>);
 impl Iterator for Paths {
     type Item = PathBuf;
     fn next(&mut self) -> Option<Self::Item> {
-        println!("ITEROK");
         self.0.clone().into_iter().next()
     }
 }
+
 impl Paths {
     pub fn to_display(&self) -> String {
         self.0

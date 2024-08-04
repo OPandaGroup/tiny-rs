@@ -2,17 +2,16 @@ use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
 use iced::{executor, theme, Alignment, Application, Command};
 use message::Thing;
-// use process::process_images;
 use state::app_theme::AppTheme;
-use state::button_style_state::ButtonStyle;
 use state::log_text_state::LogText;
 use state::process_images;
 use tinify::async_bin::Tinify;
-mod state;
+
 use self::message::Message;
+
 pub mod images_path;
 pub mod message;
-// use iced::Alignment;
+pub mod state;
 //App里只放std的和自己的数据类型，不放第三方crate的数据类型
 pub struct App {
     config: state::Config,
@@ -69,13 +68,7 @@ impl Application for App {
                 }
                 Command::none()
             }
-            Message::ToggleButtonStyle => {
-                match self.config.button_style {
-                    ButtonStyle::Standard => self.config.button_style = ButtonStyle::Lovely,
-                    ButtonStyle::Lovely => self.config.button_style = ButtonStyle::Standard,
-                };
-                Command::none()
-            }
+
             Message::Display(log_text) => {
                 self.cache.log_text = log_text;
                 Command::none()
@@ -103,7 +96,7 @@ impl Application for App {
         let added_p = self.cache.rfd_opened_path.to_display();
         println!("{}", added_p);
         let added_path = row!(
-            Text::new("AddedPath: ").size(22),
+            Text::new("Added Path: ").size(22),
             Text::new(added_p).size(20)
         );
 
@@ -130,13 +123,6 @@ impl Application for App {
                 Button::new(Text::new("ToggleTheme").shaping(Shaping::Advanced).size(20))
                     .on_press(Message::ToggleTheme)
                     .style(theme::Button::custom(self.config.button_style.clone())),
-                Button::new(
-                    Text::new("ToggleButtonStyle")
-                        .shaping(Shaping::Advanced)
-                        .size(20)
-                )
-                .on_press(Message::ToggleButtonStyle)
-                .style(theme::Button::custom(self.config.button_style.clone())),
             )
             .align_items(Alignment::Center)
             .spacing(10),

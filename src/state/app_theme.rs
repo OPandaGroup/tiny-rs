@@ -7,6 +7,7 @@ pub enum AppTheme {
     Moonfly,
     Oxocarbon,
 }
+
 impl From<AppTheme> for Theme {
     fn from(app_theme: AppTheme) -> Self {
         match app_theme {
