@@ -88,10 +88,7 @@ impl Paths {
     pub fn to_display(&self) -> String {
         self.0
             .iter()
-            .map(|item| {
-                println!("{}sssss", item.to_string_lossy());
-                item.to_str().unwrap().to_owned()
-            })
+            .map(|item| item.to_str().unwrap().to_owned())
             .collect::<String>()
     }
 }
@@ -99,15 +96,11 @@ impl Paths {
 pub async fn process_images(paths: &mut Paths, tinify: Tinify) -> anyhow::Result<()> {
     for p in paths {
         let iter = &*p.to_string_lossy();
-        println!("34rgreg54y456");
-
-        println!("{iter}");
         let mut iter = iter.split(".");
         let front = iter.next().unwrap_or("new");
         let extention = iter.last().unwrap();
 
         let new_file_name = format!("{}-optimized.{}", front, extention);
-        println!("34rgreg54y456");
         tinify
             .get_async_client()?
             .from_file(p.clone())
