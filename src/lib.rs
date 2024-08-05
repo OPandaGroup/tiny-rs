@@ -42,6 +42,9 @@ impl Application for App {
             }
 
             Message::Convert => {
+                if self.cache.rfd_opened_path.0.is_empty() {
+                    return Command::none();
+                }
                 self.cache.log_text = LogText::Null;
                 let mut paths = self.cache.paths.clone();
                 let tinify = Tinify::new().set_key(&self.cache.api_key);

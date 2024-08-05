@@ -3,17 +3,39 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ButtonStyle {
-    pub radius: u16,
-
+    #[serde(default)]
+    pub radius: u8,
+    #[serde(default = "default_background_color_hex")]
     pub background_color_hex: String,
+    #[serde(default = "default_text_color_hex")]
     pub text_color_hex: String,
+    #[serde(default = "default_border_color_hex")]
     pub border_color_hex: String,
-
+    #[serde(default = "default_background_color_hex_pressed")]
     pub background_color_hex_pressed: String,
+    #[serde(default = "default_text_color_hex_pressed")]
     pub text_color_hex_pressed: String,
+    #[serde(default = "default_border_color_hex_pressed")]
     pub border_color_hex_pressed: String,
 }
-
+fn default_background_color_hex() -> String {
+    String::from("#777777")
+}
+fn default_text_color_hex() -> String {
+    String::from("#000000")
+}
+fn default_border_color_hex() -> String {
+    String::from("#666666")
+}
+fn default_background_color_hex_pressed() -> String {
+    String::from("#00ff00")
+}
+fn default_text_color_hex_pressed() -> String {
+    String::from("#eeeeee")
+}
+fn default_border_color_hex_pressed() -> String {
+    String::from("#ffffff")
+}
 impl Default for ButtonStyle {
     fn default() -> Self {
         Self {

@@ -4,7 +4,7 @@ use button_style_state::ButtonStyle;
 use log_text_state::LogText;
 use rfd::FileDialog;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 use tinify::async_bin::Tinify;
 pub mod app_theme;
 pub mod button_style_state;
@@ -12,19 +12,32 @@ pub mod log_text_state;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
     pub theme: AppTheme,
+    #[serde(rename = "button")]
     pub button_style: ButtonStyle,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self {
-            theme: AppTheme::Dark,
-            button_style: ButtonStyle::default(),
+        match fs::read_to_string("./tinyrs.toml") {
+            Ok(config_str) => {
+                toml::from_str::<Config>(&config_str).expect("Failed to parse the config file.")
+            }
+            Err(_) => Config::default_config(),
         }
     }
 }
-
+impl Config {
+    fn default_config() -> Self {
+        let theme = AppTheme::Dark;
+        let button_style = ButtonStyle::default();
+        Self {
+            theme,
+            button_style,
+        }
+    }
+}
 pub struct Cache {
     pub rfd_opened_path: Paths, // 每次rfd打开的单个路径的总和
     pub paths: Paths,           // 总的paths
