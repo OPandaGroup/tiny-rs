@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
 use iced::{executor, theme, Alignment, Application, Command};
@@ -6,6 +8,7 @@ use state::app_theme::AppTheme;
 use state::log_text_state::LogText;
 use state::process_images;
 use tinify::async_bin::Tinify;
+use tokio::fs;
 
 use self::message::Message;
 
@@ -76,6 +79,17 @@ impl Application for App {
                 self.cache.log_text = log_text;
                 Command::none()
             }
+            Message::Exit => {
+                let contents = toml::to_string(&self.config).unwrap();
+                Command::perform(async { fs::write("./tinyrs", contents).await }, |result| {
+                    match result {
+                        Ok(_) => {
+                            exit(0);
+                        }
+                        _err => panic!("权限不足!"),
+                    }
+                })
+            }
         }
     }
 
@@ -131,8 +145,10 @@ impl Application for App {
             .spacing(10),
         )
         .padding(40);
-
-        column!(api_input, log_text, added_path, basic, settings)
+        let exit = Button::new(Text::new("Exit").size(25))
+            .on_press(Message::Exit)
+            .style(theme::Button::custom(self.config.button_style.clone()));
+        column!(api_input, log_text, added_path, basic, settings, exit)
             .spacing(9)
             .align_items(Alignment::Center)
             .into()

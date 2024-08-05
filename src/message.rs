@@ -14,6 +14,7 @@ pub enum ClearSth {
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    Exit,
     Add(Thing),
     ClearPath,
     Convert,

@@ -5,12 +5,14 @@ authors = ["Yiming Lu <demolemon@outlook.at>"]
 edition = "2021"
 
 [dependencies]
+
+tokio = { version = "1", features = ["fs"] }
 rust-hsluv = "0.1"
 tinify-rs = { version = "1.4.1", features = ["async"] }
 iced = { version = "0.12.1", features = ["tokio"] }
 rfd = "0.14.1"
 anyhow = "1.0.86"
-toml = { version = "0.8.19", features = ["parse"] }
+toml = { version = "0.8.19" }
 serde = { version = "1", features = ["derive"] }
 
 [profile.release]
