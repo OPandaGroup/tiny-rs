@@ -23,5 +23,5 @@
 
 ## 20240805
 
-- [ ] 修复LogText的convert显示bug
+- [x] 修复LogText的convert显示bug
 - [x] 完美编解码TOML配置
