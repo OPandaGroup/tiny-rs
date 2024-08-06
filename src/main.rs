@@ -8,7 +8,7 @@ use tiny_rs::{
 
 fn main() {
     App::run(Settings {
-        default_font: Font::with_name("MiSans"),
+        default_font: Font::with_name("Source Han Serif SC"),
         flags: (Config::default(), Cache::default()),
         ..Default::default()
     })

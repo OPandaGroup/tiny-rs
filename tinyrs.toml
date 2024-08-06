@@ -1,15 +1,1 @@
-# theme = "Light"
-# Light | Dark | Moonfly | Oxocarbon
-# enum
-[button]
-radius = 15
-# interger
 
-# background_color_hex = "#111111"
-# Hex String
-text_color_hex = "#222222"
-# border_color_hex = "#555555"
-
-# background_color_hex_pressed = "#888888"
-# text_color_hex_pressed = "#777777"
-# border_color_hex_pressed = "#777777"

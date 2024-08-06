@@ -6,6 +6,7 @@ use iced::{executor, theme, Alignment, Application, Command};
 use message::Thing;
 use state::app_theme::AppTheme;
 use state::log_text_state::LogText;
+use state::page::Page;
 use state::process_images;
 use tinify::async_bin::Tinify;
 use tokio::fs;
@@ -81,15 +82,26 @@ impl Application for App {
             }
             Message::Exit => {
                 let contents = toml::to_string(&self.config).unwrap();
-                Command::perform(async { fs::write("./tinyrs", contents).await }, |result| {
-                    match result {
+                Command::perform(
+                    async { fs::write("./tinyrs.toml", contents).await },
+                    |result| match result {
                         Ok(_) => {
                             exit(0);
                         }
                         _err => panic!("权限不足!"),
-                    }
-                })
+                    },
+                )
             }
+            Message::TurnTo(page) => match page {
+                Page::Home => {
+                    self.cache.page = Page::Home;
+                    Command::none()
+                }
+                Page::Settings => {
+                    self.cache.page = Page::Settings;
+                    Command::none()
+                }
+            },
         }
     }
 
@@ -98,60 +110,77 @@ impl Application for App {
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message, Self::Theme, iced::Renderer> {
-        let api_input = container(
-            TextInput::new("Type APIKey Here", &self.cache.api_key)
-                .on_input(|s: String| Message::Add(Thing::APi(s)))
-                .padding(25),
-        )
-        .padding(60)
-        .center_x();
+        match self.cache.page {
+            Page::Home => {
+                let api_input = container(
+                    TextInput::new("Type APIKey Here", &self.cache.api_key)
+                        .on_input(|s: String| Message::Add(Thing::APi(s)))
+                        .padding(25),
+                )
+                .padding(60)
+                .center_x();
 
-        let log_text: &str = (&self.cache.log_text).into();
-        let log_text = Text::new(log_text)
-            .style(theme::Text::Color((&self.cache.log_text).into()))
-            .size(25);
-        let added_p = self.cache.rfd_opened_path.to_display();
-        println!("{}", added_p);
-        let added_path = row!(
-            Text::new("Added Path: ").size(22),
-            Text::new(added_p).size(20)
-        );
+                let log_text: &str = (&self.cache.log_text).into();
+                let log_text = Text::new(log_text)
+                    .style(theme::Text::Color((&self.cache.log_text).into()))
+                    .size(25);
+                let added_p = self.cache.rfd_opened_path.to_display();
+                println!("{}", added_p);
+                let added_path = row!(
+                    Text::new("Added Path: ").size(22),
+                    Text::new(added_p).size(20)
+                );
 
-        let basic = container(
-            row!(
-                Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
-                    .on_press(Message::Add(Thing::Path))
-                    .style(theme::Button::custom(self.config.button_style.clone())),
-                Button::new(Text::new("ClearPath").shaping(Shaping::Advanced).size(20))
-                    .on_press(Message::ClearPath)
-                    .style(theme::Button::custom(self.config.button_style.clone())),
-                Button::new(Text::new("Process").shaping(Shaping::Advanced).size(20))
-                    .on_press(Message::Convert)
-                    .style(theme::Button::custom(self.config.button_style.clone())),
+                let basic = container(
+                    row!(
+                        Button::new(Text::new("AddPath").shaping(Shaping::Advanced).size(20))
+                            .on_press(Message::Add(Thing::Path))
+                            .style(theme::Button::custom(self.config.button_style.clone())),
+                        Button::new(Text::new("ClearPath").shaping(Shaping::Advanced).size(20))
+                            .on_press(Message::ClearPath)
+                            .style(theme::Button::custom(self.config.button_style.clone())),
+                        Button::new(Text::new("Process").shaping(Shaping::Advanced).size(20))
+                            .on_press(Message::Convert)
+                            .style(theme::Button::custom(self.config.button_style.clone())),
+                    )
+                    .spacing(8),
+                )
+                .padding(40)
+                .center_x()
+                .center_y();
+
+                let settings = container(
+                    Button::new(Text::new("ToSettings").size(25))
+                        .on_press(Message::TurnTo(Page::Settings))
+                        .style(theme::Button::custom(self.config.button_style.clone())),
+                )
+                .padding(40);
+                let exit = Button::new(Text::new("Exit").size(25))
+                    .on_press(Message::Exit)
+                    .style(theme::Button::custom(self.config.button_style.clone()));
+                column!(api_input, log_text, added_path, basic, settings, exit)
+                    .spacing(9)
+                    .align_items(Alignment::Center)
+                    .into()
+            }
+            Page::Settings => column!(
+                container(
+                    Button::new(Text::new("ToggleTheme").shaping(Shaping::Advanced).size(20))
+                        .on_press(Message::ToggleTheme)
+                        .style(theme::Button::custom(self.config.button_style.clone())),
+                )
+                .center_x(),
+                container(
+                    Button::new(Text::new("ToHome").shaping(Shaping::Advanced).size(20))
+                        .on_press(Message::TurnTo(Page::Home))
+                        .style(theme::Button::custom(self.config.button_style.clone())),
+                )
+                .center_x()
             )
-            .spacing(8),
-        )
-        .padding(40)
-        .center_x()
-        .center_y();
-
-        let settings = container(
-            column!(
-                Button::new(Text::new("ToggleTheme").shaping(Shaping::Advanced).size(20))
-                    .on_press(Message::ToggleTheme)
-                    .style(theme::Button::custom(self.config.button_style.clone())),
-            )
-            .align_items(Alignment::Center)
-            .spacing(10),
-        )
-        .padding(40);
-        let exit = Button::new(Text::new("Exit").size(25))
-            .on_press(Message::Exit)
-            .style(theme::Button::custom(self.config.button_style.clone()));
-        column!(api_input, log_text, added_path, basic, settings, exit)
             .spacing(9)
             .align_items(Alignment::Center)
-            .into()
+            .into(),
+        }
     }
     fn theme(&self) -> Self::Theme {
         self.config.theme.clone().into()

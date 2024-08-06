@@ -1,4 +1,4 @@
-use crate::state::log_text_state::LogText;
+use crate::state::{log_text_state::LogText, page::Page};
 
 #[derive(Debug, Clone)]
 pub enum Thing {
@@ -14,6 +14,7 @@ pub enum ClearSth {
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    TurnTo(Page),
     Exit,
     Add(Thing),
     ClearPath,

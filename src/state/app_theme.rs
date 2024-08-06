@@ -10,7 +10,7 @@ pub enum AppTheme {
 }
 impl Default for AppTheme {
     fn default() -> Self {
-        AppTheme::Dark
+        AppTheme::Light
     }
 }
 impl From<AppTheme> for Theme {

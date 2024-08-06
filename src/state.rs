@@ -9,21 +9,19 @@ use tinify::async_bin::Tinify;
 pub mod app_theme;
 pub mod button_style_state;
 pub mod log_text_state;
-
+pub mod page;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub theme: AppTheme,
-    #[serde(rename = "button")]
+    #[serde(rename = "button", default)]
     pub button_style: ButtonStyle,
 }
 
 impl Default for Config {
     fn default() -> Self {
         match fs::read_to_string("./tinyrs.toml") {
-            Ok(config_str) => {
-                toml::from_str::<Config>(&config_str).expect("Failed to parse the config file.")
-            }
+            Ok(config_str) => toml::from_str::<Config>(&config_str).unwrap(),
             Err(_) => Config::default_config(),
         }
     }
@@ -38,20 +36,25 @@ impl Config {
         }
     }
 }
+
+use page::Page;
 pub struct Cache {
+    pub page: Page,
     pub rfd_opened_path: Paths, // 每次rfd打开的单个路径的总和
-    pub paths: Paths,           // 总的paths
+    pub paths: Paths,           // 总的路径
     pub api_key: String,
     pub log_text: LogText,
 }
 
 impl Default for Cache {
     fn default() -> Self {
+        let page = Page::Home;
         let rfd_opened_path = Paths::default();
         let paths = Paths::default();
         let api_key = String::new();
         let log_text = LogText::Null;
         Self {
+            page,
             rfd_opened_path,
             paths,
             api_key,

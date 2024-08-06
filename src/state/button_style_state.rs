@@ -2,53 +2,71 @@ use iced::{widget::button, Border};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ButtonColor {
+    #[serde(default = "default_background_color")]
+    background: String,
+    #[serde(default = "default_text_color")]
+    text: String,
+    #[serde(default = "default_border_color")]
+    border: String,
+}
+impl Default for ButtonColor {
+    fn default() -> Self {
+        let background = default_background_color();
+        let text = default_text_color();
+        let border = default_border_color();
+        Self {
+            background,
+            text,
+            border,
+        }
+    }
+}
+fn default_background_color() -> String {
+    String::from("#eeeeee")
+}
+fn default_text_color() -> String {
+    String::from("#111111")
+}
+fn default_border_color() -> String {
+    String::from("#000000")
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ButtonColorState {
+    #[serde(default)]
+    onpressed: ButtonColor,
+    #[serde(default)]
+    unpressed: ButtonColor,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ButtonStyle {
     #[serde(default)]
     pub radius: u8,
-    #[serde(default = "default_background_color_hex")]
-    pub background_color_hex: String,
-    #[serde(default = "default_text_color_hex")]
-    pub text_color_hex: String,
-    #[serde(default = "default_border_color_hex")]
-    pub border_color_hex: String,
-    #[serde(default = "default_background_color_hex_pressed")]
-    pub background_color_hex_pressed: String,
-    #[serde(default = "default_text_color_hex_pressed")]
-    pub text_color_hex_pressed: String,
-    #[serde(default = "default_border_color_hex_pressed")]
-    pub border_color_hex_pressed: String,
+    #[serde(default)]
+    pub color: ButtonColorState,
 }
-fn default_background_color_hex() -> String {
-    String::from("#777777")
-}
-fn default_text_color_hex() -> String {
-    String::from("#000000")
-}
-fn default_border_color_hex() -> String {
-    String::from("#666666")
-}
-fn default_background_color_hex_pressed() -> String {
-    String::from("#00ff00")
-}
-fn default_text_color_hex_pressed() -> String {
-    String::from("#eeeeee")
-}
-fn default_border_color_hex_pressed() -> String {
-    String::from("#ffffff")
+impl Default for ButtonColorState {
+    fn default() -> Self {
+        ButtonColorState {
+            onpressed: ButtonColor {
+                background: "#00ee00".to_string(),
+                text: "#eeeeee".to_string(),
+                border: "#000000".to_string(),
+            },
+            unpressed: ButtonColor {
+                background: "#333333".to_string(),
+                text: "#eeeeee".to_string(),
+                border: "#000000".to_string(),
+            },
+        }
+    }
 }
 impl Default for ButtonStyle {
     fn default() -> Self {
-        Self {
-            radius: 3,
-
-            background_color_hex: "#333333".into(),
-            text_color_hex: "#ffffff".into(),
-            border_color_hex: "#3645ff".into(),
-
-            background_color_hex_pressed: "#3204ff".into(),
-            text_color_hex_pressed: "#eeeeee".into(),
-            border_color_hex_pressed: "#3204ff".into(),
-        }
+        let radius = 10;
+        let color = ButtonColorState::default();
+        Self { radius, color }
     }
 }
 
@@ -56,35 +74,31 @@ impl button::StyleSheet for ButtonStyle {
     type Style = iced::Theme;
 
     fn active(&self, _: &Self::Style) -> button::Appearance {
-        let border = Border {
-            color: hex_to_color(&self.border_color_hex),
-            radius: self.radius.into(),
-            ..Default::default()
-        };
-
         button::Appearance {
             background: Some(iced::Background::Color(hex_to_color(
-                &self.background_color_hex,
+                &self.color.unpressed.background,
             ))),
-            text_color: hex_to_color(&self.text_color_hex),
-            border,
+            text_color: hex_to_color(&self.color.unpressed.text),
+            border: Border {
+                color: hex_to_color(&self.color.unpressed.border),
+                radius: self.radius.into(),
+                ..Default::default()
+            },
             ..Default::default()
         }
     }
 
     fn pressed(&self, _: &Self::Style) -> button::Appearance {
-        let border = Border {
-            color: hex_to_color(&self.border_color_hex_pressed),
-            radius: self.radius.into(),
-            ..Default::default()
-        };
-
         button::Appearance {
             background: Some(iced::Background::Color(hex_to_color(
-                &self.background_color_hex_pressed,
+                &self.color.onpressed.background,
             ))),
-            text_color: hex_to_color(&self.text_color_hex_pressed),
-            border,
+            text_color: hex_to_color(&self.color.onpressed.text),
+            border: Border {
+                color: hex_to_color(&self.color.onpressed.border),
+                radius: self.radius.into(),
+                ..Default::default()
+            },
             ..Default::default()
         }
     }
