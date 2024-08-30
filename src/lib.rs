@@ -1,5 +1,4 @@
-use std::process::exit;
-
+use self::message::Message;
 use iced::widget::text::Shaping;
 use iced::widget::{column, container, row, Button, Text, TextInput};
 use iced::{executor, theme, Alignment, Application, Command};
@@ -8,11 +7,9 @@ use state::app_theme::AppTheme;
 use state::log_text_state::LogText;
 use state::page::Page;
 use state::process_images;
+use std::process::exit;
 use tinify::async_bin::Tinify;
 use tokio::fs;
-
-use self::message::Message;
-
 pub mod images_path;
 pub mod message;
 pub mod state;

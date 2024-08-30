@@ -1,1 +1,14 @@
+theme = "Moonfly"
 
+[button]
+radius = 10
+
+[button.color.onpressed]
+background = "#00ee00"
+text = "#eeeeee"
+border = "#000000"
+
+[button.color.unpressed]
+background = "#333333"
+text = "#eeeeee"
+border = "#000000"

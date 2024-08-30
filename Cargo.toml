@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 
-tokio = { version = "1", features = ["fs"] }
+tokio = {version = "1", features = ["fs"] }
 rust-hsluv = "0.1"
 tinify-rs = { version = "1.4.1", features = ["async"] }
 iced = { version = "0.12.1", features = ["tokio"] }
@@ -17,6 +17,4 @@ serde = { version = "1", features = ["derive"] }
 
 [profile.release]
 opt-level = "s"
-strip = true
-[profile.dev]
 strip = true

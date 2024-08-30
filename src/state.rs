@@ -108,7 +108,7 @@ pub async fn process_images(paths: &mut Paths, tinify: Tinify) -> anyhow::Result
             .get_async_client()?
             .from_file(p.clone())
             .await?
-            .to_file(new_file_name.clone())
+            .to_file(format!("converte_result/{}", new_file_name.clone()))
             .await?;
     }
     Ok(())
