@@ -10,6 +10,7 @@ pub struct ButtonColor {
     #[serde(default = "default_border_color")]
     border: String,
 }
+
 impl Default for ButtonColor {
     fn default() -> Self {
         let background = default_background_color();
@@ -22,12 +23,15 @@ impl Default for ButtonColor {
         }
     }
 }
+
 fn default_background_color() -> String {
     String::from("#eeeeee")
 }
+
 fn default_text_color() -> String {
     String::from("#111111")
 }
+
 fn default_border_color() -> String {
     String::from("#000000")
 }
@@ -39,6 +43,7 @@ pub struct ButtonColorState {
     #[serde(default)]
     unpressed: ButtonColor,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ButtonStyle {
     #[serde(default)]
@@ -46,6 +51,7 @@ pub struct ButtonStyle {
     #[serde(default)]
     pub color: ButtonColorState,
 }
+
 impl Default for ButtonColorState {
     fn default() -> Self {
         ButtonColorState {
@@ -62,6 +68,7 @@ impl Default for ButtonColorState {
         }
     }
 }
+
 impl Default for ButtonStyle {
     fn default() -> Self {
         let radius = 10;

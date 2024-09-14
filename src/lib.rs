@@ -1,18 +1,13 @@
-use std::process::exit;
-
-use iced::widget::text::Shaping;
-use iced::widget::{column, container, row, Button, Text, TextInput};
-use iced::{executor, theme, Alignment, Application, Command};
+use self::message::Message;
+use iced::executor;
+use iced::widget::{column, container, row, text::Shaping, theme, Button, Text, TextInput};
+use iced::Alignment;
+use iced::{Application, Command};
 use message::Thing;
-use state::app_theme::AppTheme;
-use state::log_text_state::LogText;
-use state::page::Page;
-use state::process_images;
+use state::{app_theme::AppTheme, log_text_state::LogText, page::Page, process_images};
+use std::process::exit;
 use tinify::async_bin::Tinify;
 use tokio::fs;
-
-use self::message::Message;
-
 pub mod images_path;
 pub mod message;
 pub mod state;
@@ -32,6 +27,7 @@ impl Application for App {
         let (config, cache) = flags;
         (Self { config, cache }, iced::Command::none())
     }
+
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             Message::Add(thing) => {
@@ -182,6 +178,7 @@ impl Application for App {
             .into(),
         }
     }
+
     fn theme(&self) -> Self::Theme {
         self.config.theme.clone().into()
     }

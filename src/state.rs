@@ -2,14 +2,17 @@ use crate::images_path::collect_images_path;
 use app_theme::AppTheme;
 use button_style_state::ButtonStyle;
 use log_text_state::LogText;
+use page::Page;
 use rfd::FileDialog;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tinify::async_bin::Tinify;
+
 pub mod app_theme;
 pub mod button_style_state;
 pub mod log_text_state;
 pub mod page;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
@@ -26,6 +29,7 @@ impl Default for Config {
         }
     }
 }
+
 impl Config {
     fn default_config() -> Self {
         let theme = AppTheme::Dark;
@@ -37,7 +41,6 @@ impl Config {
     }
 }
 
-use page::Page;
 pub struct Cache {
     pub page: Page,
     pub rfd_opened_path: Paths, // 每次rfd打开的单个路径的总和

@@ -16,7 +16,7 @@ toml = { version = "0.8.19" }
 serde = { version = "1", features = ["derive"] }
 
 [profile.release]
-opt-level = "s"
+# opt-level = "s"
 strip = true
 [profile.dev]
 strip = true

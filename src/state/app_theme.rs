@@ -1,18 +1,18 @@
 use iced::Theme;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum AppTheme {
     Light,
+
     Dark,
+
+    #[default]
     Moonfly,
+
     Oxocarbon,
 }
-impl Default for AppTheme {
-    fn default() -> Self {
-        AppTheme::Light
-    }
-}
+
 impl From<AppTheme> for Theme {
     fn from(app_theme: AppTheme) -> Self {
         match app_theme {
