@@ -9,4 +9,3 @@ makepad-widgets = { workspace = true }
 tinify-rs = { version = "1.4", features = ["async"] }
 home = "0.5"
 rfd = "0.15"
-tokio = "1.41"

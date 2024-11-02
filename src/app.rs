@@ -3,7 +3,6 @@ use std::path::Path;
 use std::sync::LazyLock;
 
 use makepad_widgets::*;
-use tokio::runtime;
 
 pub static DIR: LazyLock<String> = LazyLock::new(|| {
     format!(
@@ -12,14 +11,6 @@ pub static DIR: LazyLock<String> = LazyLock::new(|| {
     )
 });
 
-pub static RUNTIME: LazyLock<runtime::Runtime> = LazyLock::new(|| {
-    runtime::Builder::new_current_thread()
-        .enable_io()
-        .enable_time()
-        // .enable_all()
-        .build()
-        .unwrap()
-});
 
 live_design! {
     import makepad_widgets::base::*;
